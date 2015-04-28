@@ -1,11 +1,17 @@
 package materialtest.theartistandtheengineer.co.materialtest;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.HashMap;
 
@@ -14,6 +20,7 @@ import  materialtest.theartistandtheengineer.co.materialtest.helper.SessionManag
 
 public class MainActivity extends Activity {
 
+    private String TAG = MainActivity.class.toString();
 	private TextView txtName;
 	private TextView txtEmail;
 	private Button btnLogout;
@@ -21,10 +28,16 @@ public class MainActivity extends Activity {
 	private SQLiteHandler db;
 	private SessionManager session;
 
+    private ProgressDialog progressDialog;
+    private BroadcastReceiver receiver = null;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main2);
+
+        //Start messaging client.
+        startSinch();
 
 		txtName = (TextView) findViewById(R.id.name);
 		txtEmail = (TextView) findViewById(R.id.email);
@@ -59,6 +72,24 @@ public class MainActivity extends Activity {
 			}
 		});
 	}
+
+    /**
+     * Starts sinch messaging service
+     */
+    private void startSinch() {
+        receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Boolean success = intent.getBooleanExtra("success", false);
+                progressDialog.dismiss();
+                if (!success) {
+                    Toast.makeText(getApplicationContext(), "Messaging service failed to start", Toast.LENGTH_LONG).show();
+                }
+            }
+        };
+        //Be sure to change Intent filter parameter if this method is moved.
+        LocalBroadcastManager.getInstance(this).registerReceiver(receiver, new IntentFilter("materialtest.theartistandtheengineer.co.materialtest.MainActivity"));
+    }
 
 	/**
 	 * Logging out the user. Will set isLoggedIn flag to false in shared

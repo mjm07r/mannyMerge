@@ -72,6 +72,12 @@ public class LoginActivity extends Activity {
 
         //Messaging service
         serviceIntent = new Intent(getApplicationContext(), MessageService.class);
+        ParseUser user = ParseUser.getCurrentUser();
+        if ( user != null) {
+            startService(serviceIntent);
+        } else {
+            Log.d(TAG, "User is not logged into parse");
+        }
 
 		// Login button Click Event
 		btnLogin.setOnClickListener(new View.OnClickListener() {
@@ -85,20 +91,15 @@ public class LoginActivity extends Activity {
 					// login user
 					checkLogin(email, password);
 
-                    ParseUser user = new ParseUser();
-                    user.setUsername(email);
-                    user.setPassword(password);
-                    user.setEmail(email);
-
                     //Messaging login
-                    user.logInInBackground(email, password, new LogInCallback() {
+                    ParseUser.logInInBackground(email, password, new LogInCallback() {
                         public void done(ParseUser user, com.parse.ParseException e) {
-                            if (user != null && e == null) {
+                            if (user != null) {
                                 startService(serviceIntent);
                                 Log.d("Messaging login", "Login successful");
                             } else {
                                 Toast.makeText(getApplicationContext(),
-                                        "You used the wrong username and password!",
+                                        "Wrong username/password combo",
                                         Toast.LENGTH_LONG).show();
                             }
                         }

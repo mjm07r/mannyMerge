@@ -12,9 +12,11 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+import android.view.Menu;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.parse.FindCallback;
@@ -46,6 +48,7 @@ public class MessagingActivity extends Activity {
     private String currentUserId;
     private ServiceConnection serviceConnection = new MyServiceConnection();
     private MessageClientListener messageClientListener = new MyMessageClientListener();
+    private TextView recipientBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,12 +68,21 @@ public class MessagingActivity extends Activity {
 
         messageBodyField = (EditText) findViewById(R.id.messageBodyField);
 
+        recipientBar = (TextView)findViewById(R.id.user_name_text_box);
+        recipientBar.setText(intent.getStringExtra("RECIPIENT_USER_NAME"));
+
         findViewById(R.id.sendButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 sendMessage();
             }
         });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
     }
 
     //get previous messages from parse & display
