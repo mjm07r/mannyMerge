@@ -10,9 +10,15 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v4.app.NavUtils;
 import android.support.v4.app.NotificationCompat;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.internal.view.menu.MenuBuilder;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -34,12 +40,14 @@ import com.sinch.android.rtc.messaging.WritableMessage;
 import java.util.Arrays;
 import java.util.List;
 
+import materialtest.theartistandtheengineer.co.materialtest.activities.RatingsActivity;
 import  materialtest.theartistandtheengineer.co.materialtest.helper.MessageAdapter;
 import  materialtest.theartistandtheengineer.co.materialtest.helper.MessageService;
 
-public class MessagingActivity extends Activity {
+public class MessagingActivity extends ActionBarActivity {
 
     private String recipientId;
+    private String recipientUserName;
     private EditText messageBodyField;
     private String messageBody;
     private MessageService.MessageServiceInterface messageService;
@@ -55,6 +63,12 @@ public class MessagingActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.messaging);
 
+        Toolbar toolbar = (Toolbar) findViewById(R.id.app_bar);
+        setSupportActionBar(toolbar);
+
+        getSupportActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
         bindService(new Intent(this, MessageService.class), serviceConnection, BIND_AUTO_CREATE);
 
         Intent intent = getIntent();
@@ -64,25 +78,62 @@ public class MessagingActivity extends Activity {
         messagesList = (ListView) findViewById(R.id.listMessages);
         messageAdapter = new MessageAdapter(this);
         messagesList.setAdapter(messageAdapter);
+
         populateMessageHistory();
 
         messageBodyField = (EditText) findViewById(R.id.messageBodyField);
 
-        recipientBar = (TextView)findViewById(R.id.user_name_text_box);
-        recipientBar.setText(intent.getStringExtra("RECIPIENT_USER_NAME"));
-
+//        recipientBar = (TextView)findViewById(R.id.user_name_text_box);
+//        recipientBar.setText(intent.getStringExtra("RECIPIENT_USER_NAME"));
+        recipientUserName = intent.getStringExtra("RECIPIENT_USER_NAME");
+        getSupportActionBar().setTitle(recipientUserName);
         findViewById(R.id.sendButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 sendMessage();
             }
         });
+
+        Log.d(this.getClass().toString(), "Got to refresh call");
+        VersionHelper.refreshActionBarMenu(this);
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        Log.d("MessagingActivity", "onCreateOptionsMenu");
+        getMenuInflater().inflate(R.menu.menu_messaging, menu);
         return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml
+
+        switch (item.getItemId()) {
+            case R.id.action_complete:
+                //TODO start ratings activity
+                Intent intent = new Intent(getApplicationContext(), RatingsActivity.class);
+                //add seller id to intent. for now use recipient ID.
+                intent.putExtra("RECIPIENT_ID", recipientId);
+                intent.putExtra("RECIPIENT_USER_NAME", recipientUserName);
+                startActivity(intent);
+                break;
+            case R.id.action_cancel:
+                //TODO start ratings activity
+                break;
+            case R.id.action_log_out:
+                break;
+            case android.R.id.home:
+                NavUtils.navigateUpFromSameTask(this);
+                break;
+            case R.id.action_settings:
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     //get previous messages from parse & display
@@ -108,6 +159,8 @@ public class MessagingActivity extends Activity {
             }
         });
     }
+
+
 
     private void sendMessage() {
         messageBody = messageBodyField.getText().toString();
@@ -245,6 +298,14 @@ public class MessagingActivity extends Activity {
 
         @Override
         public void onShouldSendPushData(MessageClient client, Message message, List<PushPair> pushPairs) {}
+    }
+
+    public static class VersionHelper
+    {
+        public static void refreshActionBarMenu(Activity activity)
+        {
+            activity.invalidateOptionsMenu();
+        }
     }
 }
 

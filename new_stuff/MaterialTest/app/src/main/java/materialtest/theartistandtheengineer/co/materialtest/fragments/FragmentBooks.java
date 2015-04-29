@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -20,11 +21,16 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.parse.FindCallback;
+import com.parse.ParseQuery;
+import com.parse.ParseUser;
 
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.List;
 
+import materialtest.theartistandtheengineer.co.materialtest.MessagingActivity;
 import materialtest.theartistandtheengineer.co.materialtest.R;
 import materialtest.theartistandtheengineer.co.materialtest.activities.BuyActivity;
 import materialtest.theartistandtheengineer.co.materialtest.activities.SellActivity;
@@ -131,7 +137,34 @@ public class FragmentBooks extends Fragment implements View.OnClickListener {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_fragment_books, container, false);
         button_buy = (Button) view.findViewById(R.id.button_buy);
-        button_buy.setOnClickListener(this);
+        button_buy.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //Open messaging activity with bogus ID's.
+                Log.d("current_user_check", ParseUser.getCurrentUser().getUsername());
+                ArrayList<String> testList = new ArrayList<>();
+                testList.add(0, "m_mcgee@knights.ucf.edu");
+                ParseQuery<ParseUser> query = ParseUser.getQuery();
+                query.whereEqualTo("username", "m_mcgee@knights.ucf.edu");
+                query.findInBackground(new FindCallback<ParseUser>() {
+                    public void done(List<ParseUser> user, com.parse.ParseException e) {
+                        if (e == null) {
+                            Log.d("Query_finder_test", "User list size"+user.size()+" Username: "+user.get(0)
+                                    .getUsername()+" User Id: "+user.get(0).getObjectId());
+                            String recipientId = user.get(0).getObjectId();
+                            Intent intent = new Intent(getActivity(), MessagingActivity.class);
+                            intent.putExtra("RECIPIENT_ID", recipientId);
+                            intent.putExtra("RECIPIENT_USER_NAME", user.get(0).getUsername());
+                            startActivity(intent);
+                        } else {
+                            Toast.makeText(getActivity().getApplicationContext(),
+                                    "Error finding that user",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+            }
+        });
         button_sell = (Button) view.findViewById(R.id.button_sell);
         button_sell.setOnClickListener(this);
 
